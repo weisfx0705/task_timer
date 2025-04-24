@@ -190,4 +190,38 @@ input {
     color: #2c3e50;
     font-size: 1rem;
     margin: 0;
+}
+
+.timer-card.paused {
+    background-color: #f0f0f0;
+    border: 2px dashed #a0a0a0;
+    opacity: 0.85;
+}
+
+.paused-text {
+    color: #7f8c8d !important;
+}
+
+.pause-indicator {
+    font-size: 1rem;
+    color: #e74c3c;
+    font-weight: normal;
+    display: block;
+    margin-top: 5px;
+}
+
+.resume-btn {
+    background-color: #27ae60;
+}
+
+.resume-btn:hover {
+    background-color: #2ecc71;
+}
+
+.pause-btn {
+    background-color: #f39c12;
+}
+
+.pause-btn:hover {
+    background-color: #f1c40f;
 } 

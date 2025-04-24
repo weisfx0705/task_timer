@@ -50,7 +50,8 @@ document.addEventListener('DOMContentLoaded', function() {
             remainingSeconds: totalSeconds,  // 剩餘時間（會變化）
             startTime: Date.now(),       // 開始時間戳
             lastUpdateTime: Date.now(),  // 最後更新時間戳，用於計算實際經過的時間
-            status: 'active'
+            status: 'active',
+            isPaused: false              // 新增暫停狀態追蹤
         };
         
         // 保存計時器
@@ -111,7 +112,7 @@ function updateTimers() {
     console.log('開始更新計時器 - 當前時間:', new Date(now).toLocaleTimeString());
     
     timers.forEach(timer => {
-        if (timer.status === 'active') {
+        if (timer.status === 'active' && !timer.isPaused) {  // 只有當計時器處於活動狀態且未暫停時才更新
             // 計算自上次更新以來經過的實際時間（秒）
             const elapsedSeconds = Math.floor((now - (timer.lastUpdateTime || timer.startTime)) / 1000);
             
@@ -201,15 +202,28 @@ function renderTimers() {
             
             // 更新計時器顯示
             const timerDisplay = timerCard.querySelector('.timer-display');
-            timerDisplay.textContent = `${hoursLeft.toString().padStart(2, '0')}:${minutesLeft.toString().padStart(2, '0')}:${secondsLeft.toString().padStart(2, '0')}`;
-            timerDisplay.className = `timer-display ${isLowBattery ? 'warning' : ''}`;
+            timerDisplay.innerHTML = `
+                ${hoursLeft.toString().padStart(2, '0')}:${minutesLeft.toString().padStart(2, '0')}:${secondsLeft.toString().padStart(2, '0')}
+                ${timer.isPaused ? '<span class="pause-indicator">（已暫停）</span>' : ''}
+            `;
+            timerDisplay.className = `timer-display ${isLowBattery ? 'warning' : ''} ${timer.isPaused ? 'paused-text' : ''}`;
             
             // 更新進度條
             const progressBar = timerCard.querySelector('.progress-bar');
             progressBar.style.width = `${progress}%`;
             
             // 更新卡片樣式
-            timerCard.className = `timer-card ${isLowBattery ? 'low-battery' : ''}`;
+            timerCard.className = `timer-card ${isLowBattery ? 'low-battery' : ''} ${timer.isPaused ? 'paused' : ''}`;
+            
+            // 更新操作按鈕
+            const timerActions = timerCard.querySelector('.timer-actions');
+            timerActions.innerHTML = `
+                ${timer.isPaused 
+                    ? `<button class="btn resume-btn" onclick="resumeTimer('${timer.id}')">恢復</button>` 
+                    : `<button class="btn pause-btn" onclick="pauseTimer('${timer.id}')">暫停</button>`}
+                <button class="btn" onclick="completeTimer('${timer.id}')">完成</button>
+                <button class="btn delete-btn" onclick="deleteTimer('${timer.id}')">刪除</button>
+            `;
         }
     } else {
         // 完全重建計時器卡片
@@ -227,16 +241,20 @@ function renderTimers() {
             const isLowBattery = timer.remainingSeconds < 1800;
             
             const timerCard = document.createElement('div');
-            timerCard.className = `timer-card ${isLowBattery ? 'low-battery' : ''}`;
+            timerCard.className = `timer-card ${isLowBattery ? 'low-battery' : ''} ${timer.isPaused ? 'paused' : ''}`;
             timerCard.innerHTML = `
                 <h3>${timer.name}</h3>
                 <div class="timer-progress">
                     <div class="progress-bar" style="width: ${progress}%"></div>
                 </div>
-                <div class="timer-display ${isLowBattery ? 'warning' : ''}">
+                <div class="timer-display ${isLowBattery ? 'warning' : ''} ${timer.isPaused ? 'paused-text' : ''}">
                     ${hoursLeft.toString().padStart(2, '0')}:${minutesLeft.toString().padStart(2, '0')}:${secondsLeft.toString().padStart(2, '0')}
+                    ${timer.isPaused ? '<span class="pause-indicator">（已暫停）</span>' : ''}
                 </div>
                 <div class="timer-actions">
+                    ${timer.isPaused 
+                        ? `<button class="btn resume-btn" onclick="resumeTimer('${timer.id}')">恢復</button>` 
+                        : `<button class="btn pause-btn" onclick="pauseTimer('${timer.id}')">暫停</button>`}
                     <button class="btn" onclick="completeTimer('${timer.id}')">完成</button>
                     <button class="btn delete-btn" onclick="deleteTimer('${timer.id}')">刪除</button>
                 </div>
@@ -329,4 +347,38 @@ function formatDuration(seconds) {
     const secs = seconds % 60;
     
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+// 暫停計時器
+function pauseTimer(timerId) {
+    const timers = JSON.parse(localStorage.getItem('timers') || '[]');
+    const timerIndex = timers.findIndex(t => t.id === timerId);
+    
+    if (timerIndex !== -1) {
+        const timer = timers[timerIndex];
+        if (timer.status === 'active') {
+            timer.isPaused = true;
+            timer.pauseTime = Date.now(); // 記錄暫停時間
+            localStorage.setItem('timers', JSON.stringify(timers));
+            renderTimers();
+            console.log(`計時器 "${timer.name}" 已暫停!`);
+        }
+    }
+}
+
+// 恢復計時器
+function resumeTimer(timerId) {
+    const timers = JSON.parse(localStorage.getItem('timers') || '[]');
+    const timerIndex = timers.findIndex(t => t.id === timerId);
+    
+    if (timerIndex !== -1) {
+        const timer = timers[timerIndex];
+        if (timer.status === 'active' && timer.isPaused) {
+            timer.isPaused = false;
+            timer.lastUpdateTime = Date.now(); // 更新最後更新時間為現在
+            localStorage.setItem('timers', JSON.stringify(timers));
+            renderTimers();
+            console.log(`計時器 "${timer.name}" 已恢復!`);
+        }
+    }
 } 

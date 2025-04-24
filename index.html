@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>麥克風電池計時器</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>麥克風電池計時器 by 義守影視2025</h1>
+        
+        <div class="current-time-container">
+            <h2>當前時間: <span id="current-time"></span></h2>
+        </div>
+        
+        <div class="timer-form">
+            <h2>新增麥克風計時</h2>
+            <form id="mic-form">
+                <div class="form-group">
+                    <label for="mic-name">麥克風名稱：</label>
+                    <input type="text" id="mic-name" required placeholder="例如：演員1">
+                </div>
+                <div class="form-group">
+                    <label for="hours">時間（小時）：</label>
+                    <input type="number" id="hours" min="0" max="24" value="6" required>
+                </div>
+                <div class="form-group">
+                    <label for="minutes">時間（分鐘）：</label>
+                    <input type="number" id="minutes" min="0" max="59" value="0" required>
+                </div>
+                <button type="submit" class="btn">新增計時器</button>
+            </form>
+        </div>
+
+        <div class="timers-container">
+            <h2>當前計時器</h2>
+            <div id="active-timers" class="timer-grid"></div>
+        </div>
+
+        <div class="history-container">
+            <h2>歷史記錄</h2>
+            <div id="timer-history"></div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html> 
